@@ -2,7 +2,9 @@ def run(String cmd) {
     if (isUnix()) {
         sh cmd
     } else {
-        bat cmd
+        withEnv(['PATH+DOCKER=C:\\Users\\ayaal\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin']) {
+            bat cmd
+        }
     }
 }
 
