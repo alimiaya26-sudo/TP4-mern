@@ -1,3 +1,11 @@
+def run(String cmd) {
+    if (isUnix()) {
+        sh cmd
+    } else {
+        bat cmd
+    }
+}
+
 pipeline {
     agent any
 
@@ -9,58 +17,57 @@ pipeline {
             }
         }
 
-        stage('Nettoyage') {
+        stage('Info Docker') {
             steps {
-                sh 'docker compose down || true'
-                sh 'docker rm -f mongodb server client || true'
+                script {
+                    run('docker version')
+                    run('docker compose version')
+                }
             }
         }
 
         stage('Build des images') {
             steps {
-                sh 'docker build -t mern-server ./Server'
-                sh 'docker build -t mern-client ./Client'
+                script {
+                    run('docker build -t mern-server ./Server')
+                    run('docker build -t mern-client ./Client')
+                }
             }
         }
 
         stage('Lancement') {
             steps {
-                sh 'docker compose up -d --build'
+                script {
+                    run('docker compose up -d --build')
+                }
             }
         }
 
         stage('Verification') {
             steps {
-                sh 'docker compose ps'
+                script {
+                    run('docker compose ps')
+                }
             }
         }
 
         stage('Test serveur') {
             steps {
-                sh '''
-                  for i in 1 2 3 4 5 6 7 8 9 10; do
-                    docker exec server wget -qO- http://localhost:9000/api/health && exit 0
+                retry(10) {
                     sleep 3
-                  done
-                  exit 1
-                '''
+                    script {
+                        run('docker exec server wget -qO- http://localhost:9000/api/health')
+                    }
+                }
             }
         }
 
         stage('Test client') {
             steps {
-                sh 'docker exec client wget -qO- http://localhost:3000 | grep root'
+                script {
+                    run('docker exec client wget -qO- http://localhost:3000')
+                }
             }
-        }
-    }
-
-    post {
-        success {
-            echo 'Pipeline reussi : application disponible sur http://localhost:3000'
-        }
-        failure {
-            sh 'docker compose logs'
-            sh 'docker compose down || true'
         }
     }
 }
