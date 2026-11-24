@@ -23,7 +23,7 @@ pipeline {
             steps {
                 script {
                     run('docker version')
-                    run('docker compose version')
+                    run('docker-compose version')
                 }
             }
         }
@@ -40,7 +40,7 @@ pipeline {
         stage('Lancement') {
             steps {
                 script {
-                    run('docker compose up -d --build')
+                    run('docker-compose up -d --build')
                 }
             }
         }
@@ -48,7 +48,7 @@ pipeline {
         stage('Verification') {
             steps {
                 script {
-                    run('docker compose ps')
+                    run('docker-compose ps')
                 }
             }
         }
